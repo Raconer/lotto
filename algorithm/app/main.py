@@ -8,6 +8,7 @@ from app.core.config import get_settings
 from app.core.database import get_db, Base, engine
 from app.engines.ensemble import predict as ensemble_predict
 from app.engines.backtest import run_backtest
+from app.engines.typed_predictions import generate_all_types
 
 settings = get_settings()
 
@@ -188,6 +189,75 @@ async def get_backtest_results(db: AsyncSession = Depends(get_db)):
 
     summaries.sort(key=lambda x: x["avg_matched"], reverse=True)
     return summaries
+
+
+@app.post(
+    "/api/predict/typed",
+    summary="5종류 타입별 추천 번호 생성",
+    description="핫넘버, 콜드넘버, 균형조합, 희소조합, AI앙상블 5종류 추천을 생성합니다.",
+)
+async def predict_typed(db: AsyncSession = Depends(get_db)):
+    draws = await _get_all_draws(db)
+    if len(draws) < 10:
+        return {"error": "데이터가 부족합니다."}
+
+    latest_round = await _get_latest_round(db)
+    target_round = latest_round + 1
+
+    results = generate_all_types(draws)
+
+    # DB 저장
+    from sqlalchemy import text
+    import json as jsonlib
+    for idx, pred in enumerate(results, 1):
+        if not pred.get("numbers"):
+            continue
+        nums = pred["numbers"]
+        detail = {
+            "type": pred["type"],
+            "type_name": pred["type_name"],
+            "type_desc": pred["type_desc"],
+            "analysis": pred.get("analysis", {}),
+            "detail": pred.get("detail", {}),
+        }
+        await db.execute(
+            text("""
+                INSERT INTO predictions (target_round, set_number, num1, num2, num3, num4, num5, num6, confidence, algorithm_detail)
+                VALUES (:target_round, :set_number, :num1, :num2, :num3, :num4, :num5, :num6, :confidence, CAST(:algorithm_detail AS jsonb))
+                ON CONFLICT (target_round, set_number) DO UPDATE SET
+                    num1 = :num1, num2 = :num2, num3 = :num3,
+                    num4 = :num4, num5 = :num5, num6 = :num6,
+                    confidence = :confidence, algorithm_detail = CAST(:algorithm_detail AS jsonb)
+            """),
+            {
+                "target_round": target_round,
+                "set_number": idx,
+                "num1": nums[0], "num2": nums[1], "num3": nums[2],
+                "num4": nums[3], "num5": nums[4], "num6": nums[5],
+                "confidence": pred.get("confidence"),
+                "algorithm_detail": jsonlib.dumps(detail, ensure_ascii=False),
+            },
+        )
+    await db.commit()
+
+    return {
+        "target_round": target_round,
+        "predictions": [
+            {
+                "target_round": target_round,
+                "set_number": idx + 1,
+                "type": pred["type"],
+                "type_name": pred["type_name"],
+                "type_desc": pred["type_desc"],
+                "numbers": pred["numbers"],
+                "confidence": pred.get("confidence"),
+                "analysis": pred.get("analysis"),
+                "detail": pred.get("detail"),
+                "created_at": __import__("datetime").datetime.now().isoformat(),
+            }
+            for idx, pred in enumerate(results)
+        ],
+    }
 
 
 @app.get("/api/health", tags=["시스템"])
