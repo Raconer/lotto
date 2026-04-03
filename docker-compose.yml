@@ -1,0 +1,94 @@
+version: "3.8"
+
+services:
+  # ─── PostgreSQL ───
+  lotto-db:
+    image: postgres:16-alpine
+    container_name: lotto-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lotto
+      POSTGRES_USER: lotto_user
+      POSTGRES_PASSWORD: lotto_pass_2024
+    ports:
+      - "${DB_PORT:-3003}:5432"
+    volumes:
+      - lotto_pgdata:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lotto_user -d lotto"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis ───
+  lotto-redis:
+    image: redis:7-alpine
+    container_name: lotto-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-3004}:6379"
+    volumes:
+      - lotto_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─── Backend API ───
+  lotto-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lotto-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-3005}:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://lotto_user:lotto_pass_2024@lotto-db:5432/lotto
+      REDIS_URL: redis://lotto-redis:6379/0
+      ALGORITHM_URL: http://lotto-algorithm:8001
+    depends_on:
+      lotto-db:
+        condition: service_healthy
+      lotto-redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+
+  # ─── Algorithm Server ───
+  lotto-algorithm:
+    build:
+      context: ./algorithm
+      dockerfile: Dockerfile
+    container_name: lotto-algorithm
+    restart: unless-stopped
+    ports:
+      - "${ALGO_PORT:-3006}:8001"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://lotto_user:lotto_pass_2024@lotto-db:5432/lotto
+      REDIS_URL: redis://lotto-redis:6379/1
+    depends_on:
+      lotto-db:
+        condition: service_healthy
+      lotto-redis:
+        condition: service_healthy
+    volumes:
+      - ./algorithm:/app
+
+  # ─── Frontend ───
+  lotto-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lotto-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3007}:80"
+    depends_on:
+      - lotto-api
+
+volumes:
+  lotto_pgdata:
+  lotto_redis_data:
