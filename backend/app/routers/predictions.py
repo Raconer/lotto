@@ -15,9 +15,8 @@ router = APIRouter(prefix="/api/predictions", tags=["추천/예측"])
 @router.post(
     "/generate",
     response_model=PredictionListResponse,
-    summary="추천 번호 생성",
-    description="알고리즘 서버를 호출하여 다음 회차 추천 번호 5세트를 생성합니다. "
-    "전체 이력 기반 통계 분석, 패턴 탐색, 백테스트 최적화를 거쳐 추천합니다.",
+    summary="추천 번호 생성 (기존 앙상블)",
+    description="알고리즘 서버를 호출하여 다음 회차 추천 번호 5세트를 생성합니다.",
 )
 async def generate_predictions(db: AsyncSession = Depends(get_db)):
     try:
@@ -30,6 +29,23 @@ async def generate_predictions(db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=503, detail="알고리즘 서버에 연결할 수 없습니다.")
 
     return PredictionListResponse(**data)
+
+
+@router.post(
+    "/generate/typed",
+    summary="5종류 타입별 추천 번호 생성",
+    description="핫넘버, 콜드넘버, 균형조합, 희소조합, AI앙상블 5종류 추천을 생성합니다. "
+    "각 타입별로 다른 전략을 사용하며, 분석 상세와 함께 반환됩니다.",
+)
+async def generate_typed_predictions(db: AsyncSession = Depends(get_db)):
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            resp = await client.post(f"{settings.ALGORITHM_URL}/api/predict/typed")
+            if resp.status_code != 200:
+                raise HTTPException(status_code=502, detail=f"알고리즘 서버 오류: {resp.text}")
+            return resp.json()
+    except httpx.ConnectError:
+        raise HTTPException(status_code=503, detail="알고리즘 서버에 연결할 수 없습니다.")
 
 
 @router.get(

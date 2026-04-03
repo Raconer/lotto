@@ -41,6 +41,9 @@ export const validateNumbers = (numbers) =>
 export const generatePredictions = () =>
   client.post('/predictions/generate').then(r => r.data);
 
+export const generateTypedPredictions = () =>
+  client.post('/predictions/generate/typed').then(r => r.data);
+
 export const getLatestPredictions = () =>
   client.get('/predictions/latest').then(r => r.data);
 
