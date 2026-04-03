@@ -48,3 +48,14 @@ async def crawl_latest(
     if result["new_rounds"] > 0:
         background_tasks.add_task(_update_all_stats, db)
     return CrawlResponse(**result)
+
+
+@router.post(
+    "/update-stats",
+    summary="통계 갱신",
+    description="DB에 저장된 당첨번호 기반으로 모든 통계(번호별, 조합별, 구간별)를 갱신합니다. "
+    "크롤링 없이 기존 데이터로만 통계를 재계산합니다.",
+)
+async def update_stats(db: AsyncSession = Depends(get_db)):
+    await _update_all_stats(db)
+    return {"message": "통계 갱신 완료"}

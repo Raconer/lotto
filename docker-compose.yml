@@ -14,7 +14,8 @@ services:
       - "${DB_PORT:-3003}:5432"
     volumes:
       - lotto_pgdata:/var/lib/postgresql/data
-      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./docker/seed_data.sql:/docker-entrypoint-initdb.d/02_seed.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U lotto_user -d lotto"]
       interval: 5s
