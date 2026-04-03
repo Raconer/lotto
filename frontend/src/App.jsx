@@ -1,4 +1,4 @@
-import { Routes, Route, NavLink, useLocation } from 'react-router-dom'
+import { Routes, Route, NavLink } from 'react-router-dom'
 import { BarChart3, Home, TrendingUp, Search, History, Sparkles } from 'lucide-react'
 import Dashboard from './pages/Dashboard'
 import Statistics from './pages/Statistics'
@@ -7,39 +7,34 @@ import HistoryPage from './pages/HistoryPage'
 import Validate from './pages/Validate'
 import './App.css'
 
-const navItems = [
-  { path: '/', icon: Home, label: '대시보드' },
-  { path: '/statistics', icon: BarChart3, label: '통계' },
-  { path: '/analysis', icon: TrendingUp, label: '분석' },
-  { path: '/history', icon: History, label: '히스토리' },
-  { path: '/validate', icon: Search, label: '번호검증' },
+const nav = [
+  { to: '/', icon: Home, label: '대시보드' },
+  { to: '/statistics', icon: BarChart3, label: '통계' },
+  { to: '/analysis', icon: TrendingUp, label: '분석' },
+  { to: '/history', icon: History, label: '히스토리' },
+  { to: '/validate', icon: Search, label: '번호검증' },
 ]
 
-function App() {
-  const location = useLocation()
-
+export default function App() {
   return (
     <div className="app-layout">
       <nav className="sidebar">
         <div className="sidebar-header">
-          <Sparkles size={28} className="logo-icon" />
-          <h1 className="logo-text">Lotto AI</h1>
+          <Sparkles size={22} className="logo-icon" />
+          <span className="logo-text">Lotto AI</span>
         </div>
         <ul className="nav-list">
-          {navItems.map(({ path, icon: Icon, label }) => (
-            <li key={path}>
-              <NavLink to={path} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                <Icon size={20} />
+          {nav.map(({ to, icon: Icon, label }) => (
+            <li key={to} style={{ position: 'relative' }}>
+              <NavLink to={to} end={to === '/'} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                <Icon size={18} strokeWidth={1.8} />
                 <span>{label}</span>
               </NavLink>
             </li>
           ))}
         </ul>
-        <div className="sidebar-footer">
-          <p>Lotto AI v1.0</p>
-        </div>
+        <div className="sidebar-footer">v1.1</div>
       </nav>
-
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
@@ -52,5 +47,3 @@ function App() {
     </div>
   )
 }
-
-export default App

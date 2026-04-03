@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getDraws, getDrawByRound } from '../api/client'
 import { BallGroup } from '../components/LottoBall'
 import Loading from '../components/Loading'
-import { Search } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function HistoryPage() {
   const [page, setPage] = useState(1)
@@ -11,10 +11,7 @@ export default function HistoryPage() {
   const [searchResult, setSearchResult] = useState(null)
   const [searchError, setSearchError] = useState('')
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['draws', page],
-    queryFn: () => getDraws(page, 20),
-  })
+  const { data, isLoading } = useQuery({ queryKey: ['draws', page], queryFn: () => getDraws(page, 20) })
 
   const handleSearch = async () => {
     if (!searchRound) return
@@ -22,7 +19,7 @@ export default function HistoryPage() {
     try {
       const result = await getDrawByRound(Number(searchRound))
       setSearchResult(result)
-    } catch (e) {
+    } catch {
       setSearchError(`${searchRound}회차 데이터가 없습니다.`)
       setSearchResult(null)
     }
@@ -37,54 +34,53 @@ export default function HistoryPage() {
         <p className="page-desc">전체 로또 당첨번호 이력</p>
       </div>
 
-      {/* 검색 */}
-      <div className="card" style={{ marginBottom: 24 }}>
+      {/* Search */}
+      <div className="card section">
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
             className="input"
             type="number"
-            placeholder="회차 번호 검색"
+            placeholder="회차 번호"
             value={searchRound}
             onChange={e => setSearchRound(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
-            style={{ width: 200 }}
+            style={{ width: 160 }}
           />
           <button className="btn btn-primary" onClick={handleSearch}>
-            <Search size={16} /> 검색
+            <Search size={14} /> 검색
           </button>
         </div>
 
-        {searchError && <p style={{ color: 'var(--accent-pink)', marginTop: 12, fontSize: 13 }}>{searchError}</p>}
+        {searchError && <p style={{ color: 'var(--rose)', marginTop: 10, fontSize: 12 }}>{searchError}</p>}
 
         {searchResult && (
-          <div style={{ marginTop: 16, padding: 16, background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
-              <span style={{ fontWeight: 700, color: 'var(--accent-purple)' }}>{searchResult.round_no}회</span>
-              <span style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{searchResult.draw_date}</span>
+          <div style={{ marginTop: 16, padding: 20, background: 'var(--bg-1)', borderRadius: 'var(--radius-m)' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-0)' }}>{searchResult.round_no}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>회차 · {searchResult.draw_date}</span>
             </div>
-            <BallGroup numbers={searchResult.numbers} size={42} />
-            <span style={{ marginLeft: 8, fontSize: 13, color: 'var(--text-muted)' }}>+ 보너스 </span>
-            <span className="lotto-ball" style={{
-              width: 42, height: 42, fontSize: 15,
-              background: 'linear-gradient(135deg, #555, #888)', display: 'inline-flex'
-            }}>
-              {searchResult.bonus}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <BallGroup numbers={searchResult.numbers} size={40} />
+              <span style={{ fontSize: 11, color: 'var(--text-4)' }}>+</span>
+              <span className="lotto-ball" style={{ width: 40, height: 40, fontSize: 13, background: '#3f3f46', display: 'inline-flex' }}>
+                {searchResult.bonus}
+              </span>
+            </div>
             {searchResult.first_prize && (
-              <div style={{ marginTop: 12, fontSize: 13, color: 'var(--text-secondary)' }}>
-                1등 당첨금: <strong style={{ color: 'var(--accent-yellow)' }}>{(searchResult.first_prize / 100000000).toFixed(1)}억원</strong>
-                {' '}({searchResult.first_winners}명)
+              <div style={{ marginTop: 10, fontSize: 12, color: 'var(--text-3)' }}>
+                1등 <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{(searchResult.first_prize / 100000000).toFixed(0)}억원</span>
+                <span style={{ color: 'var(--text-4)', marginLeft: 6 }}>{searchResult.first_winners}명</span>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* 목록 */}
+      {/* Table */}
       <div className="card">
         <div className="card-header">
           <div className="card-title">당첨번호 목록</div>
-          {data && <div className="card-subtitle">총 {data.total}회차</div>}
+          {data && <span style={{ fontSize: 12, color: 'var(--text-3)' }}>총 {data.total}회차</span>}
         </div>
 
         {isLoading ? <Loading /> : (
@@ -96,38 +92,38 @@ export default function HistoryPage() {
                   <th>추첨일</th>
                   <th>당첨번호</th>
                   <th>보너스</th>
-                  <th>1등 당첨금</th>
+                  <th style={{ textAlign: 'right' }}>1등</th>
                 </tr>
               </thead>
               <tbody>
                 {data?.draws.map(d => (
                   <tr key={d.round_no}>
-                    <td style={{ fontWeight: 600 }}>{d.round_no}회</td>
-                    <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{d.draw_date}</td>
-                    <td><BallGroup numbers={d.numbers} size={32} /></td>
+                    <td style={{ fontWeight: 600, fontSize: 13 }}>{d.round_no}</td>
+                    <td style={{ color: 'var(--text-3)', fontSize: 12 }}>{d.draw_date}</td>
+                    <td><BallGroup numbers={d.numbers} size={28} /></td>
                     <td>
-                      <span className="lotto-ball" style={{
-                        width: 32, height: 32, fontSize: 12,
-                        background: 'linear-gradient(135deg, #555, #888)',
-                      }}>
+                      <span className="lotto-ball" style={{ width: 28, height: 28, fontSize: 11, background: '#3f3f46' }}>
                         {d.bonus}
                       </span>
                     </td>
-                    <td style={{ color: 'var(--accent-yellow)', fontSize: 13 }}>
-                      {d.first_prize ? `${(d.first_prize / 100000000).toFixed(1)}억` : '-'}
+                    <td style={{ textAlign: 'right', color: 'var(--gold)', fontSize: 12, fontWeight: 500 }}>
+                      {d.first_prize ? `${(d.first_prize / 100000000).toFixed(0)}억` : '—'}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
-            {/* 페이지네이션 */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 20 }}>
-              <button className="btn btn-secondary" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>이전</button>
-              <span style={{ padding: '10px 16px', color: 'var(--text-secondary)', fontSize: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 20 }}>
+              <button className="btn btn-secondary" disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{ padding: '6px 10px' }}>
+                <ChevronLeft size={16} />
+              </button>
+              <span style={{ fontSize: 12, color: 'var(--text-3)', minWidth: 60, textAlign: 'center' }}>
                 {page} / {totalPages}
               </span>
-              <button className="btn btn-secondary" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>다음</button>
+              <button className="btn btn-secondary" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{ padding: '6px 10px' }}>
+                <ChevronRight size={16} />
+              </button>
             </div>
           </>
         )}
