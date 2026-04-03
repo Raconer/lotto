@@ -79,11 +79,11 @@ async def predict(db: AsyncSession = Depends(get_db)):
         await db.execute(
             text("""
                 INSERT INTO predictions (target_round, set_number, num1, num2, num3, num4, num5, num6, confidence, algorithm_detail)
-                VALUES (:target_round, :set_number, :num1, :num2, :num3, :num4, :num5, :num6, :confidence, :algorithm_detail::jsonb)
+                VALUES (:target_round, :set_number, :num1, :num2, :num3, :num4, :num5, :num6, :confidence, CAST(:algorithm_detail AS jsonb))
                 ON CONFLICT (target_round, set_number) DO UPDATE SET
                     num1 = :num1, num2 = :num2, num3 = :num3,
                     num4 = :num4, num5 = :num5, num6 = :num6,
-                    confidence = :confidence, algorithm_detail = :algorithm_detail::jsonb
+                    confidence = :confidence, algorithm_detail = CAST(:algorithm_detail AS jsonb)
             """),
             {
                 "target_round": target_round,
