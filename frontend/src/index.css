@@ -1,75 +1,59 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg-0: #09090b;
-  --bg-1: #0f0f12;
-  --bg-2: #18181b;
-  --bg-3: #1f1f23;
-  --bg-4: #27272a;
-  --border-subtle: rgba(255,255,255,0.06);
-  --border-default: rgba(255,255,255,0.08);
-  --border-strong: rgba(255,255,255,0.12);
+  --bg-0: #07070a;
+  --bg-1: #0c0c10;
+  --bg-2: #111116;
+  --bg-3: #19191f;
+  --bg-4: #222229;
+  --bg-glass: rgba(17,17,22,0.7);
 
-  --text-0: #fafafa;
-  --text-1: #d4d4d8;
-  --text-2: #a1a1aa;
-  --text-3: #71717a;
-  --text-4: #52525b;
+  --border-1: rgba(255,255,255,0.04);
+  --border-2: rgba(255,255,255,0.07);
+  --border-3: rgba(255,255,255,0.12);
 
-  --gold: #f59e0b;
-  --gold-soft: rgba(245,158,11,0.12);
-  --blue: #6366f1;
-  --blue-soft: rgba(99,102,241,0.12);
-  --green: #10b981;
-  --green-soft: rgba(16,185,129,0.10);
-  --rose: #f43f5e;
-  --rose-soft: rgba(244,63,94,0.10);
-  --cyan: #06b6d4;
-  --cyan-soft: rgba(6,182,212,0.10);
-  --violet: #8b5cf6;
-  --violet-soft: rgba(139,92,246,0.10);
+  --t0: #ffffff;
+  --t1: #ececf1;
+  --t2: #ababba;
+  --t3: #6e6e80;
+  --t4: #444454;
 
-  --radius-s: 8px;
-  --radius-m: 12px;
-  --radius-l: 16px;
-  --radius-xl: 20px;
+  --accent: #7c5cfc;
+  --accent2: #5b8def;
+  --hot: #ff6b81;
+  --cold: #45b7d1;
+  --gold: #ffb347;
+  --green: #3dd68c;
+  --rose: #ff4d6d;
+
+  --glow-accent: 0 0 40px rgba(124,92,252,0.15);
+  --glow-gold: 0 0 40px rgba(255,179,71,0.12);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   background: var(--bg-0);
-  color: var(--text-1);
-  line-height: 1.5;
+  color: var(--t1);
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 #root { min-height: 100vh; }
 
-a { color: var(--blue); text-decoration: none; }
-
-::selection { background: rgba(99,102,241,0.3); }
-
-::-webkit-scrollbar { width: 5px; }
+a { color: var(--accent2); text-decoration: none; }
+::selection { background: rgba(124,92,252,0.3); }
+::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 4px; }
 
-/* Utility animations */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: var(--glow-accent); }
+  50% { box-shadow: 0 0 60px rgba(124,92,252,0.25); }
+}
