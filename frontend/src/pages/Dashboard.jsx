@@ -16,11 +16,9 @@ const TYPES = {
 const TT = { background: '#19191f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, fontSize: 12 }
 const PIE_COLORS = ['#e6a817', '#3b82f6', '#ef4444', '#8b5cf6', '#10b981']
 
-/* ─── 추천 카드 ─── */
 function RecCard({ p, stats, open, onToggle }) {
   const c = TYPES[p.type] || TYPES.ensemble
   const Icon = c.icon
-
   const numStats = useMemo(() => {
     if (!stats?.length || !p.numbers?.length) return null
     const map = Object.fromEntries(stats.map(s => [s.number, s]))
@@ -40,9 +38,7 @@ function RecCard({ p, stats, open, onToggle }) {
         {p.confidence && <span className="type-chip" style={{ background: 'rgba(61,214,140,0.1)', color: 'var(--green)' }}>{p.confidence}%</span>}
         {open ? <ChevronUp size={13} color="var(--t4)" /> : <ChevronDown size={13} color="var(--t4)" />}
       </div>
-
       <BallGroup numbers={p.numbers} size={40} />
-
       <div style={{ display: 'flex', gap: 14, marginTop: 10, fontSize: 10 }}>
         <span style={{ color: 'var(--t4)' }}>빈도 <b style={{ color: 'var(--t2)' }}>{avgFreq}</b></span>
         <span style={{ color: 'var(--t4)' }}>미출현 <b style={{ color: 'var(--t2)' }}>{avgOverdue}</b></span>
@@ -53,7 +49,6 @@ function RecCard({ p, stats, open, onToggle }) {
         {hotCount > 0 && <span className="badge badge-hot" style={{ padding: '1px 6px', fontSize: 9 }}>HOT {hotCount}</span>}
         {coldCount > 0 && <span className="badge badge-cold" style={{ padding: '1px 6px', fontSize: 9 }}>COLD {coldCount}</span>}
       </div>
-
       {open && numStats && (
         <div style={{ marginTop: 14 }} onClick={e => e.stopPropagation()}>
           <table className="data-table" style={{ fontSize: 12 }}>
@@ -73,7 +68,7 @@ function RecCard({ p, stats, open, onToggle }) {
           </table>
           <div style={{ marginTop: 10 }}>
             <ResponsiveContainer width="100%" height={100}>
-              <BarChart data={numStats.map(s => ({ n: s.number, f: s.frequency, o: s.overdue }))}>
+              <BarChart data={numStats.map(s => ({ n: s.number, f: s.frequency }))}>
                 <XAxis dataKey="n" tick={{ fill: '#6e6e80', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={TT} />
                 <Bar dataKey="f" name="출현" fill={c.color} radius={[4, 4, 0, 0]} />
@@ -105,17 +100,14 @@ export default function Dashboard() {
   const totalDraws = drawList?.total || 0
   const recent10 = drawList?.draws || []
 
-  // 핫/콜드
   const hot = stats?.filter(s => s.is_hot).sort((a, b) => b.frequency - a.frequency).slice(0, 6) || []
   const cold = stats?.filter(s => s.is_cold).sort((a, b) => b.overdue - a.overdue).slice(0, 6) || []
 
-  // 홀짝 평균
   const oddEvenAvg = rangeStats?.length ? {
     odd: (rangeStats.reduce((s, r) => s + r.odd_count, 0) / rangeStats.length).toFixed(1),
     even: (rangeStats.reduce((s, r) => s + r.even_count, 0) / rangeStats.length).toFixed(1),
   } : null
 
-  // 구간 평균 파이
   const rangeAvg = rangeStats?.length ? [
     { name: '1-10', value: +(rangeStats.reduce((s, r) => s + r.range_1_10, 0) / rangeStats.length).toFixed(2) },
     { name: '11-20', value: +(rangeStats.reduce((s, r) => s + r.range_11_20, 0) / rangeStats.length).toFixed(2) },
@@ -124,10 +116,7 @@ export default function Dashboard() {
     { name: '41-45', value: +(rangeStats.reduce((s, r) => s + r.range_41_45, 0) / rangeStats.length).toFixed(2) },
   ] : []
 
-  // 합계 트렌드
   const sumTrend = rangeStats?.slice(0, 20).reverse().map(r => ({ r: r.round_no, s: r.sum_total })) || []
-
-  // 연번 비율
   const consecAvg = rangeStats?.length ? (rangeStats.reduce((s, r) => s + r.consecutive_pairs, 0) / rangeStats.length).toFixed(1) : '—'
 
   return (
@@ -154,40 +143,13 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ═══ 메인 2열: 좌측 콘텐츠 + 우측 최근당첨 ═══ */}
+      {/* ═══ 2열 레이아웃 ═══ */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
 
-        {/* ──── 좌측 ──── */}
+        {/* ─── 좌측 ─── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-          {/* 5종류 추천 */}
-          {typedList.length > 0 ? (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div className="section-title" style={{ margin: 0 }}>
-                  <Sparkles size={14} color="var(--accent)" />
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--t0)' }}>{typed.target_round}회차 추천</span>
-                </div>
-                <span style={{ fontSize: 10, color: 'var(--t4)' }}>카드 클릭 → 통계 비교</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {typedList.map((p, i) => (
-                  <RecCard key={i} p={p} stats={stats} open={openIdx === i} onToggle={() => setOpenIdx(openIdx === i ? null : i)} />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="card" style={{ textAlign: 'center', padding: '36px 20px' }}>
-              <Sparkles size={28} color="var(--accent)" style={{ marginBottom: 10, opacity: 0.4 }} />
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t1)', marginBottom: 4 }}>추천 번호 없음</div>
-              <div style={{ fontSize: 12, color: 'var(--t4)', marginBottom: 14 }}>"5종류 추천" 버튼으로 AI 분석 시작</div>
-              <button className="btn btn-primary" onClick={() => typedMut.mutate()} disabled={typedMut.isPending}>
-                <Sparkles size={14} /> 추천 생성
-              </button>
-            </div>
-          )}
-
-          {/* ── 통계 요약 4칸 ── */}
+          {/* ① 통계 요약 4칸 */}
           <div className="grid-4">
             <div className="mini-stat">
               <div className="label">총 회차</div>
@@ -196,12 +158,12 @@ export default function Dashboard() {
             <div className="mini-stat">
               <div className="label">평균 홀짝</div>
               <div className="value" style={{ fontSize: 20 }}>{oddEvenAvg ? `${oddEvenAvg.odd}:${oddEvenAvg.even}` : '—'}</div>
-              <div className="sub">최근 30회 기준</div>
+              <div className="sub">최근 30회</div>
             </div>
             <div className="mini-stat">
               <div className="label">평균 연번</div>
               <div className="value" style={{ fontSize: 20 }}>{consecAvg}쌍</div>
-              <div className="sub">최근 30회 기준</div>
+              <div className="sub">최근 30회</div>
             </div>
             <div className="mini-stat">
               <div className="label">평균 합계</div>
@@ -210,48 +172,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ── 확률/조합 통계 ── */}
-          <div className="grid-2">
-            {/* 자주 나오는 2개 조합 */}
-            <div className="card">
-              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-                <Percent size={13} color="var(--accent)" /> 자주 나오는 2개 조합
-              </div>
-              {topPairs?.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {topPairs.map((c, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', borderBottom: '1px solid var(--border-1)' }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--t4)', minWidth: 18 }}>{i + 1}</span>
-                      <BallGroup numbers={c.combination} size={26} />
-                      <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>{c.frequency}회</span>
-                      <span style={{ fontSize: 11, color: 'var(--green)' }}>{c.probability.toFixed(1)}%</span>
-                    </div>
-                  ))}
-                </div>
-              ) : <p style={{ color: 'var(--t4)', fontSize: 12 }}>데이터 없음</p>}
-            </div>
-
-            {/* 자주 나오는 3개 조합 */}
-            <div className="card">
-              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-                <Percent size={13} color="var(--gold)" /> 자주 나오는 3개 조합
-              </div>
-              {topTriples?.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {topTriples.map((c, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', borderBottom: '1px solid var(--border-1)' }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--t4)', minWidth: 18 }}>{i + 1}</span>
-                      <BallGroup numbers={c.combination} size={26} />
-                      <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>{c.frequency}회</span>
-                      <span style={{ fontSize: 11, color: 'var(--green)' }}>{c.probability.toFixed(2)}%</span>
-                    </div>
-                  ))}
-                </div>
-              ) : <p style={{ color: 'var(--t4)', fontSize: 12 }}>데이터 없음</p>}
-            </div>
-          </div>
-
-          {/* ── 번호 빈도 + 합계 트렌드 ── */}
+          {/* ② 그래프: 빈도 + 합계 트렌드 */}
           <div className="grid-2">
             {chartData.length > 0 && (
               <div className="card">
@@ -271,7 +192,6 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
             )}
-
             {sumTrend.length > 0 && (
               <div className="card">
                 <div className="card-title" style={{ marginBottom: 12 }}>
@@ -291,14 +211,14 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* ── 구간 분포 파이 + 핫/콜드 ── */}
+          {/* ③ 구간 파이 + 핫/콜드 */}
           <div className="grid-3">
             {rangeAvg.length > 0 && (
               <div className="card">
-                <div className="card-title" style={{ marginBottom: 12 }}>구간 분포</div>
-                <ResponsiveContainer width="100%" height={170}>
+                <div className="card-title" style={{ marginBottom: 10 }}>구간 분포</div>
+                <ResponsiveContainer width="100%" height={160}>
                   <PieChart>
-                    <Pie data={rangeAvg} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" paddingAngle={3}
+                    <Pie data={rangeAvg} cx="50%" cy="50%" innerRadius={38} outerRadius={62} dataKey="value" paddingAngle={3}
                       label={({ name }) => name} labelLine={false}>
                       {rangeAvg.map((_, i) => <Cell key={i} fill={PIE_COLORS[i]} />)}
                     </Pie>
@@ -307,9 +227,8 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
             )}
-
             <div className="card">
-              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 12 }}>
+              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
                 <Flame size={13} color="var(--hot)" /> 핫 번호
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -319,12 +238,11 @@ export default function Dashboard() {
                     <div style={{ fontSize: 9, color: 'var(--hot)', marginTop: 3, fontWeight: 600 }}>{s.frequency}</div>
                   </div>
                 ))}
-                {hot.length === 0 && <span style={{ fontSize: 11, color: 'var(--t4)' }}>데이터 수집 필요</span>}
+                {hot.length === 0 && <span style={{ fontSize: 11, color: 'var(--t4)' }}>수집 필요</span>}
               </div>
             </div>
-
             <div className="card">
-              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 12 }}>
+              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
                 <Snowflake size={13} color="var(--cold)" /> 콜드 번호
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -334,47 +252,108 @@ export default function Dashboard() {
                     <div style={{ fontSize: 9, color: 'var(--cold)', marginTop: 3, fontWeight: 600 }}>{s.overdue}회</div>
                   </div>
                 ))}
-                {cold.length === 0 && <span style={{ fontSize: 11, color: 'var(--t4)' }}>데이터 수집 필요</span>}
+                {cold.length === 0 && <span style={{ fontSize: 11, color: 'var(--t4)' }}>수집 필요</span>}
               </div>
+            </div>
+          </div>
+
+          {/* ④ 5종류 추천 */}
+          {typedList.length > 0 ? (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div className="section-title" style={{ margin: 0 }}>
+                  <Sparkles size={14} color="var(--accent)" />
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--t0)' }}>{typed.target_round}회차 추천</span>
+                </div>
+                <span style={{ fontSize: 10, color: 'var(--t4)' }}>카드 클릭 → 통계 비교</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {typedList.map((p, i) => (
+                  <RecCard key={i} p={p} stats={stats} open={openIdx === i} onToggle={() => setOpenIdx(openIdx === i ? null : i)} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="card" style={{ textAlign: 'center', padding: '36px 20px' }}>
+              <Sparkles size={28} color="var(--accent)" style={{ marginBottom: 10, opacity: 0.4 }} />
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t1)', marginBottom: 4 }}>추천 번호 없음</div>
+              <div style={{ fontSize: 12, color: 'var(--t4)', marginBottom: 14 }}>상단 "5종류 추천" 버튼으로 AI 분석 시작</div>
+              <button className="btn btn-primary" onClick={() => typedMut.mutate()} disabled={typedMut.isPending}>
+                <Sparkles size={14} /> 추천 생성
+              </button>
+            </div>
+          )}
+
+          {/* ⑤ 조합 확률 */}
+          <div className="grid-2">
+            <div className="card">
+              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+                <Percent size={13} color="var(--accent)" /> 2개 조합 TOP 10
+              </div>
+              {topPairs?.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {topPairs.map((c, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '1px solid var(--border-1)' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--t4)', minWidth: 16 }}>{i + 1}</span>
+                      <BallGroup numbers={c.combination} size={24} />
+                      <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>{c.frequency}회</span>
+                      <span style={{ fontSize: 11, color: 'var(--green)', minWidth: 42, textAlign: 'right' }}>{c.probability.toFixed(1)}%</span>
+                    </div>
+                  ))}
+                </div>
+              ) : <p style={{ color: 'var(--t4)', fontSize: 12 }}>데이터 없음</p>}
+            </div>
+            <div className="card">
+              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+                <Percent size={13} color="var(--gold)" /> 3개 조합 TOP 5
+              </div>
+              {topTriples?.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {topTriples.map((c, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '1px solid var(--border-1)' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--t4)', minWidth: 16 }}>{i + 1}</span>
+                      <BallGroup numbers={c.combination} size={24} />
+                      <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>{c.frequency}회</span>
+                      <span style={{ fontSize: 11, color: 'var(--green)', minWidth: 48, textAlign: 'right' }}>{c.probability.toFixed(2)}%</span>
+                    </div>
+                  ))}
+                </div>
+              ) : <p style={{ color: 'var(--t4)', fontSize: 12 }}>데이터 없음</p>}
             </div>
           </div>
         </div>
 
-        {/* ──── 우측: 최근 당첨번호 패널 ──── */}
+        {/* ─── 우측: 최근 당첨번호 ─── */}
         <div style={{ position: 'sticky', top: 32 }}>
           <div className="card" style={{ padding: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
               <Trophy size={14} color="var(--gold)" />
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--t0)' }}>최근 당첨번호</span>
             </div>
-
             {loadingDraw ? <Loading /> : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {/* 최신 회차 크게 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {latest && (
-                  <div style={{ padding: 16, background: 'linear-gradient(135deg, rgba(124,92,252,0.06), rgba(91,141,239,0.04))', borderRadius: 12, border: '1px solid rgba(124,92,252,0.12)' }}>
+                  <div style={{ padding: 14, background: 'linear-gradient(135deg, rgba(124,92,252,0.06), rgba(91,141,239,0.04))', borderRadius: 12, border: '1px solid rgba(124,92,252,0.12)' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
                       <span style={{ fontSize: 22, fontWeight: 900, color: 'var(--t0)', letterSpacing: '-1px' }}>{latest.round_no}</span>
                       <span style={{ fontSize: 11, color: 'var(--t3)' }}>회</span>
                       <span style={{ fontSize: 10, color: 'var(--t4)', marginLeft: 'auto' }}>{latest.draw_date}</span>
                     </div>
-                    <BallGroup numbers={latest.numbers} size={34} />
-                    <div style={{ marginTop: 8, fontSize: 11, color: 'var(--t4)' }}>
-                      보너스 <span className="lotto-ball" style={{ width: 22, height: 22, fontSize: 9, background: 'var(--bg-4)', boxShadow: 'none', display: 'inline-flex', verticalAlign: 'middle' }}>{latest.bonus}</span>
+                    <BallGroup numbers={latest.numbers} size={32} />
+                    <div style={{ marginTop: 6, fontSize: 10, color: 'var(--t4)' }}>
+                      보너스 <span className="lotto-ball" style={{ width: 20, height: 20, fontSize: 8, background: 'var(--bg-4)', boxShadow: 'none', display: 'inline-flex', verticalAlign: 'middle' }}>{latest.bonus}</span>
                     </div>
                     {latest.first_prize && (
-                      <div style={{ marginTop: 6, fontSize: 11, color: 'var(--t3)' }}>
+                      <div style={{ marginTop: 4, fontSize: 11, color: 'var(--t3)' }}>
                         1등 <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{(latest.first_prize / 100000000).toFixed(0)}억</span>
                         <span style={{ color: 'var(--t4)', marginLeft: 4 }}>{latest.first_winners}명</span>
                       </div>
                     )}
                   </div>
                 )}
-
-                {/* 이전 회차들 */}
-                {recent10.slice(1, 10).map(d => (
-                  <div key={d.round_no} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--border-1)' }}>
-                    <div style={{ minWidth: 40 }}>
+                {recent10.slice(1).map(d => (
+                  <div key={d.round_no} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--border-1)' }}>
+                    <div style={{ minWidth: 38 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>{d.round_no}</div>
                       <div style={{ fontSize: 9, color: 'var(--t4)' }}>{d.draw_date?.slice(5)}</div>
                     </div>
