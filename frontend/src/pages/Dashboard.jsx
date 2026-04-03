@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { RefreshCw, Sparkles, Flame, Snowflake, Scale, Gem, Brain, ChevronDown, ChevronUp, Trophy, TrendingUp, BarChart3, Percent } from 'lucide-react'
-import { getLatestDraw, getDraws, getNumberStats, getRangeStats, getCombinationStats, crawlAll, generateTypedPredictions } from '../api/client'
+import { getLatestDraw, getDraws, getLatestPredictions, getNumberStats, getRangeStats, getCombinationStats, crawlAll, generateTypedPredictions } from '../api/client'
 import { BallGroup } from '../components/LottoBall'
 import Loading from '../components/Loading'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, CartesianGrid, PieChart, Pie } from 'recharts'
@@ -89,13 +89,31 @@ export default function Dashboard() {
   const { data: rangeStats } = useQuery({ queryKey: ['rangeStats'], queryFn: () => getRangeStats(30) })
   const { data: topPairs } = useQuery({ queryKey: ['combos', 2, 'desc'], queryFn: () => getCombinationStats(2, 10, 'desc') })
   const { data: topTriples } = useQuery({ queryKey: ['combos', 3, 'desc'], queryFn: () => getCombinationStats(3, 5, 'desc') })
-  const [typed, setTyped] = useState(null)
+  const { data: savedPredictions } = useQuery({ queryKey: ['predictions'], queryFn: getLatestPredictions, retry: false })
+  const [freshTyped, setFreshTyped] = useState(null)
   const [openIdx, setOpenIdx] = useState(null)
 
   const crawlMut = useMutation({ mutationFn: crawlAll, onSuccess: () => qc.invalidateQueries() })
-  const typedMut = useMutation({ mutationFn: generateTypedPredictions, onSuccess: d => { setTyped(d); qc.invalidateQueries() } })
+  const typedMut = useMutation({ mutationFn: generateTypedPredictions, onSuccess: d => { setFreshTyped(d); qc.invalidateQueries(['predictions']) } })
 
   const chartData = stats?.map(s => ({ n: s.number, f: s.frequency, h: s.is_hot, c: s.is_cold })) || []
+
+  // 새로 생성한 추천이 있으면 그것, 없으면 DB에서 불러온 것
+  const typed = freshTyped || (savedPredictions ? {
+    target_round: savedPredictions.target_round,
+    predictions: savedPredictions.predictions.map(p => {
+      const d = p.algorithm_detail || {}
+      return {
+        type: d.type || 'ensemble',
+        type_name: d.type_name || `SET ${p.set_number}`,
+        type_desc: d.type_desc || '',
+        numbers: p.numbers,
+        confidence: p.confidence,
+        analysis: d.analysis || null,
+        detail: d.detail || null,
+      }
+    }),
+  } : null)
   const typedList = typed?.predictions || []
   const totalDraws = drawList?.total || 0
   const recent10 = drawList?.draws || []
