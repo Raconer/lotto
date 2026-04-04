@@ -11,7 +11,7 @@ services:
       POSTGRES_USER: lotto_user
       POSTGRES_PASSWORD: lotto_pass_2024
     ports:
-      - "${DB_PORT:-3003}:5432"
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - lotto_pgdata:/var/lib/postgresql/data
       - ./docker/init.sql:/docker-entrypoint-initdb.d/01_init.sql
@@ -86,7 +86,7 @@ services:
     container_name: lotto-frontend
     restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT:-3007}:80"
+      - "${FRONTEND_PORT:-3003}:80"
     depends_on:
       - lotto-api
 
