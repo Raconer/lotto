@@ -1,7 +1,7 @@
 -- ═══════════════════════════════════════════════════════
 -- 로또 6/45 전체 당첨번호 시드 데이터
--- 생성일시: 2026-04-04 03:14:38
--- 총 1167개 회차
+-- 생성일시: 2026-04-04 09:25:46
+-- 총 1205개 회차
 -- ═══════════════════════════════════════════════════════
 
 BEGIN;
@@ -1173,5 +1173,43 @@ INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonu
 INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1165, '2025-03-29', 6, 7, 27, 29, 38, 45, 17, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
 INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1166, '2025-04-05', 14, 23, 25, 27, 29, 42, 16, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
 INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1167, '2025-04-12', 8, 23, 31, 35, 39, 40, 24, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1168, '2025-04-19', 9, 21, 24, 30, 33, 37, 29, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1169, '2025-04-26', 5, 12, 24, 26, 39, 42, 20, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1170, '2025-05-03', 3, 13, 28, 34, 38, 42, 25, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1171, '2025-05-10', 3, 6, 7, 11, 12, 17, 19, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1172, '2025-05-17', 7, 9, 24, 40, 42, 44, 45, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1173, '2025-05-24', 1, 5, 18, 20, 30, 35, 3, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1174, '2025-05-31', 8, 11, 14, 17, 36, 39, 22, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1175, '2025-06-07', 3, 4, 6, 8, 32, 42, 31, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1176, '2025-06-14', 7, 9, 11, 21, 30, 35, 29, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1177, '2025-06-21', 3, 7, 15, 16, 19, 43, 21, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1178, '2025-06-28', 5, 6, 11, 27, 43, 44, 17, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1179, '2025-07-05', 3, 16, 18, 24, 40, 44, 21, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1180, '2025-07-12', 6, 12, 18, 37, 40, 41, 3, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1181, '2025-07-19', 8, 10, 14, 20, 33, 41, 28, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1182, '2025-07-26', 1, 13, 21, 25, 28, 31, 22, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1183, '2025-08-02', 4, 15, 17, 23, 27, 36, 31, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1184, '2025-08-09', 14, 16, 23, 25, 31, 37, 42, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1185, '2025-08-16', 6, 17, 22, 28, 29, 32, 38, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1186, '2025-08-23', 2, 8, 13, 16, 23, 28, 35, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1187, '2025-08-30', 5, 13, 26, 29, 37, 40, 42, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1188, '2025-09-06', 3, 4, 12, 19, 22, 27, 9, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1189, '2025-09-13', 9, 19, 29, 35, 37, 38, 31, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1190, '2025-09-20', 7, 9, 19, 23, 26, 45, 33, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1191, '2025-09-27', 1, 4, 11, 12, 20, 41, 2, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1192, '2025-10-04', 10, 16, 23, 36, 39, 40, 11, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1193, '2025-10-11', 6, 9, 16, 19, 24, 28, 17, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1194, '2025-10-18', 3, 13, 15, 24, 33, 37, 2, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1195, '2025-10-25', 3, 15, 27, 33, 34, 36, 37, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1196, '2025-11-01', 8, 12, 15, 29, 40, 45, 14, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1197, '2025-11-08', 1, 5, 7, 26, 28, 43, 30, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1198, '2025-11-15', 26, 30, 33, 38, 39, 41, 21, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1199, '2025-11-22', 16, 24, 25, 30, 31, 32, 7, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1200, '2025-11-29', 1, 2, 4, 16, 20, 32, 45, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1201, '2025-12-06', 7, 9, 24, 27, 35, 36, 37, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1202, '2025-12-13', 5, 12, 21, 33, 37, 40, 7, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1203, '2025-12-20', 3, 6, 18, 29, 35, 39, 24, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1204, '2025-12-27', 8, 16, 28, 30, 31, 44, 27, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
+INSERT INTO draws (round_no, draw_date, num1, num2, num3, num4, num5, num6, bonus, total_sales, first_prize, first_winners) VALUES (1205, '2026-01-03', 1, 4, 16, 23, 31, 41, 2, NULL, NULL, NULL) ON CONFLICT (round_no) DO NOTHING;
 
 COMMIT;

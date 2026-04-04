@@ -13,7 +13,7 @@ function ScoreRing({ score, label, color }) {
   return (
     <div style={{ textAlign: 'center' }}>
       <svg width="100" height="100" style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx="50" cy="50" r={radius} fill="none" stroke="var(--bg-3)" strokeWidth="6" />
+        <circle cx="50" cy="50" r={radius} fill="none" stroke="var(--bg-4)" strokeWidth="6" />
         <circle cx="50" cy="50" r={radius} fill="none" stroke={color} strokeWidth="6"
           strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
           style={{ transition: 'stroke-dashoffset 0.8s ease' }} />
@@ -139,7 +139,7 @@ export default function Validate() {
                       <Cell key={i} fill={e.color} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ background: '#18181b', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12 }} />
+                  <Tooltip contentStyle={{ background: 'var(--tooltip-bg)', border: '1px solid var(--tooltip-border)', borderRadius: 8, fontSize: 12 }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
