@@ -33,7 +33,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # 설정
 # ---------------------------------------------------------------------------
-MAX_ROUND = 1167
+MAX_ROUND = 1205
 OUTPUT_FILE = Path(__file__).parent / "seed_data.sql"
 CSV_FILE = Path(__file__).parent / "lotto_raw.csv"
 DELAY = 0.2  # API 요청 간 대기(초)
