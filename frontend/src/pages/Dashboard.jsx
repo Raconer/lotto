@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { RefreshCw, Sparkles, Flame, Snowflake, Scale, Gem, Brain, ChevronDown, ChevronUp, Trophy, TrendingUp, BarChart3, Percent } from 'lucide-react'
-import { getLatestDraw, getDraws, getLatestPredictions, getNumberStats, getRangeStats, getCombinationStats, crawlAll, generateTypedPredictions } from '../api/client'
+import { RefreshCw, Sparkles, Flame, Snowflake, Scale, Gem, Brain, ChevronDown, ChevronUp, Trophy, TrendingUp, BarChart3, Percent, Database, Download } from 'lucide-react'
+import { getLatestDraw, getDraws, getLatestPredictions, getNumberStats, getRangeStats, getCombinationStats, crawlRange, getCrawlStatus, getDbStatus, generateTypedPredictions } from '../api/client'
 import { BallGroup } from '../components/LottoBall'
 import Loading from '../components/Loading'
 import InfoTip from '../components/InfoTip'
@@ -91,10 +91,56 @@ export default function Dashboard() {
   const { data: topPairs } = useQuery({ queryKey: ['combos', 2, 'desc'], queryFn: () => getCombinationStats(2, 10, 'desc') })
   const { data: topTriples } = useQuery({ queryKey: ['combos', 3, 'desc'], queryFn: () => getCombinationStats(3, 5, 'desc') })
   const { data: savedPredictions } = useQuery({ queryKey: ['predictions'], queryFn: getLatestPredictions, retry: false })
+  const { data: dbStatus } = useQuery({ queryKey: ['dbStatus'], queryFn: getDbStatus })
   const [freshTyped, setFreshTyped] = useState(null)
   const [openIdx, setOpenIdx] = useState(null)
 
-  const crawlMut = useMutation({ mutationFn: crawlAll, onSuccess: () => qc.invalidateQueries() })
+  // 크롤링
+  const [crawlStart, setCrawlStart] = useState('')
+  const [crawlEnd, setCrawlEnd] = useState('')
+  const [crawlStatus, setCrawlStatus] = useState(null)
+  const pollRef = useRef(null)
+
+  // 크롤링 진행 폴링
+  const startPolling = () => {
+    if (pollRef.current) return
+    pollRef.current = setInterval(async () => {
+      try {
+        const st = await getCrawlStatus()
+        setCrawlStatus(st)
+        if (st.state === 'done' || st.state === 'idle') {
+          clearInterval(pollRef.current)
+          pollRef.current = null
+          qc.invalidateQueries()
+        }
+      } catch { /* ignore */ }
+    }, 1000)
+  }
+
+  // 페이지 로드 시 진행 중인 크롤링 상태 복원
+  useEffect(() => {
+    getCrawlStatus().then(st => {
+      if (st && st.state !== 'idle') {
+        setCrawlStatus(st)
+        if (st.state === 'running') startPolling()
+      }
+    }).catch(() => {})
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+  }, [])
+
+  // dbStatus 로드 시 기본 범위 설정
+  useEffect(() => {
+    if (dbStatus && !crawlStart && !crawlEnd) {
+      setCrawlStart(String(dbStatus.db_max + 1))
+      setCrawlEnd(String(dbStatus.db_max + 20))
+    }
+  }, [dbStatus])
+
+  const crawlMut = useMutation({
+    mutationFn: ({ start, end }) => crawlRange(start, end),
+    onMutate: () => startPolling(),
+    onSuccess: () => qc.invalidateQueries(),
+  })
   const typedMut = useMutation({ mutationFn: generateTypedPredictions, onSuccess: d => { setFreshTyped(d); qc.invalidateQueries(['predictions']) } })
 
   const chartData = stats?.map(s => ({ n: s.number, f: s.frequency, h: s.is_hot, c: s.is_cold })) || []
@@ -141,26 +187,72 @@ export default function Dashboard() {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-        <div>
-          <h1 className="page-title">대시보드</h1>
-          <p className="page-desc">로또 AI 분석</p>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-secondary" onClick={() => crawlMut.mutate()} disabled={crawlMut.isPending}>
-            <RefreshCw size={14} /> {crawlMut.isPending ? '수집 중' : '데이터 수집'}
-          </button>
-          <button className="btn btn-primary" onClick={() => typedMut.mutate()} disabled={typedMut.isPending}>
-            <Sparkles size={14} /> {typedMut.isPending ? '분석 중' : '5종류 추천'}
-          </button>
-        </div>
+      <div style={{ marginBottom: 24 }}>
+        <h1 className="page-title">대시보드</h1>
+        <p className="page-desc">로또 AI 분석</p>
       </div>
 
-      {crawlMut.isSuccess && (
-        <div style={{ padding: '10px 16px', background: 'rgba(61,214,140,0.08)', border: '1px solid rgba(61,214,140,0.15)', borderRadius: 12, marginBottom: 16, fontSize: 13, color: 'var(--green)' }}>
-          {crawlMut.data.message}
+      {/* 크롤링 패널 */}
+      <div className="card" style={{ marginBottom: 20, padding: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <Database size={14} color="var(--accent)" />
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--t0)' }}>데이터 수집</span>
+          <InfoTip text="동행복권에서 지정한 범위의 회차를 수집합니다. 시작/끝 회차를 입력하고 수집 버튼을 누르세요. 진행 상황은 실시간으로 표시되며, 다른 페이지에 갔다 와도 유지됩니다." />
+          {dbStatus && (
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--t3)' }}>
+              DB: {dbStatus.db_count}회차 저장 ({dbStatus.db_min}~{dbStatus.db_max})
+              {dbStatus.missing_count > 0 && <span style={{ color: 'var(--gold)', marginLeft: 6 }}>누락 {dbStatus.missing_count}개</span>}
+            </span>
+          )}
         </div>
-      )}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <input className="input" type="number" placeholder="시작 회차" value={crawlStart}
+            onChange={e => setCrawlStart(e.target.value)} style={{ width: 100 }} />
+          <span style={{ color: 'var(--t4)', fontSize: 13 }}>~</span>
+          <input className="input" type="number" placeholder="끝 회차" value={crawlEnd}
+            onChange={e => setCrawlEnd(e.target.value)} style={{ width: 100 }} />
+          <button className="btn btn-primary"
+            onClick={() => crawlMut.mutate({ start: Number(crawlStart), end: Number(crawlEnd) })}
+            disabled={crawlMut.isPending || !crawlStart || !crawlEnd || (crawlStatus?.state === 'running')}
+          >
+            <Download size={14} /> {crawlMut.isPending ? '수집 중' : '수집'}
+          </button>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {[20, 50, 100].map(n => (
+              <button key={n} className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: 11 }}
+                onClick={() => {
+                  const s = dbStatus ? dbStatus.db_max + 1 : 1
+                  setCrawlStart(String(s))
+                  setCrawlEnd(String(s + n - 1))
+                }}>
+                {n}회차
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 진행 바 */}
+        {crawlStatus && crawlStatus.state !== 'idle' && (
+          <div style={{ marginTop: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: crawlStatus.state === 'done' ? 'var(--green)' : 'var(--t2)', marginBottom: 6 }}>
+              <span>{crawlStatus.message}</span>
+              <span>{crawlStatus.progress}%</span>
+            </div>
+            <div style={{ height: 6, background: 'var(--bg-4)', borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{
+                height: '100%', borderRadius: 3, transition: 'width 0.3s',
+                width: `${crawlStatus.progress}%`,
+                background: crawlStatus.state === 'done' ? 'var(--green)' : 'linear-gradient(90deg, var(--accent), var(--accent2))',
+              }} />
+            </div>
+            {crawlStatus.state === 'done' && (
+              <div style={{ fontSize: 10, color: 'var(--t3)', marginTop: 4 }}>
+                수집 {crawlStatus.crawled}개 · 신규 {crawlStatus.new}개 · 실패 {crawlStatus.failed}개
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ═══ 2열 레이아웃 ═══ */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
@@ -280,32 +372,33 @@ export default function Dashboard() {
           </div>
 
           {/* ④ 5종류 추천 */}
-          {typedList.length > 0 ? (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div className="section-title" style={{ margin: 0 }}>
-                  <Sparkles size={14} color="var(--accent)" />
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--t0)' }}>{typed.target_round}회차 추천</span>
-                  <InfoTip text="5가지 서로 다른 AI 전략으로 생성된 추천 번호입니다. 핫넘버(최근 고빈도), 콜드넘버(장기 미출현), 균형 조합(홀짝/구간 최적), 희소 조합(남들이 안 고르는 번호), AI 앙상블(5개 엔진 종합). 카드를 클릭하면 각 번호의 상세 통계를 비교할 수 있습니다." />
-                </div>
-                <span style={{ fontSize: 10, color: 'var(--t4)' }}>카드 클릭 → 통계 비교</span>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div className="section-title" style={{ margin: 0 }}>
+                <Sparkles size={14} color="var(--accent)" />
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--t0)' }}>
+                  {typed ? `${typed.target_round}회차 추천` : 'AI 추천 번호'}
+                </span>
+                <InfoTip text="5가지 서로 다른 AI 전략으로 생성된 추천 번호입니다. 핫넘버(최근 고빈도), 콜드넘버(장기 미출현), 균형 조합(홀짝/구간 최적), 희소 조합(남들이 안 고르는 번호), AI 앙상블(5개 엔진 종합). 카드를 클릭하면 각 번호의 상세 통계를 비교할 수 있습니다." />
               </div>
+              <button className="btn btn-primary" onClick={() => typedMut.mutate()} disabled={typedMut.isPending}>
+                <Sparkles size={14} /> {typedMut.isPending ? '분석 중' : typedList.length > 0 ? '다시 생성' : '5종류 추천 생성'}
+              </button>
+            </div>
+
+            {typedList.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {typedList.map((p, i) => (
                   <RecCard key={i} p={p} stats={stats} open={openIdx === i} onToggle={() => setOpenIdx(openIdx === i ? null : i)} />
                 ))}
               </div>
-            </div>
-          ) : (
-            <div className="card" style={{ textAlign: 'center', padding: '36px 20px' }}>
-              <Sparkles size={28} color="var(--accent)" style={{ marginBottom: 10, opacity: 0.4 }} />
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t1)', marginBottom: 4 }}>추천 번호 없음</div>
-              <div style={{ fontSize: 12, color: 'var(--t4)', marginBottom: 14 }}>상단 "5종류 추천" 버튼으로 AI 분석 시작</div>
-              <button className="btn btn-primary" onClick={() => typedMut.mutate()} disabled={typedMut.isPending}>
-                <Sparkles size={14} /> 추천 생성
-              </button>
-            </div>
-          )}
+            ) : (
+              <div className="card" style={{ textAlign: 'center', padding: '32px 20px' }}>
+                <Sparkles size={24} color="var(--accent)" style={{ marginBottom: 8, opacity: 0.4 }} />
+                <div style={{ fontSize: 13, color: 'var(--t3)' }}>우측 상단 버튼으로 AI 추천을 생성하세요</div>
+              </div>
+            )}
+          </div>
 
           {/* ⑤ 조합 확률 */}
           <div className="grid-2">
