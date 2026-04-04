@@ -1,10 +1,11 @@
 import { Routes, Route, NavLink } from 'react-router-dom'
-import { BarChart3, Home, TrendingUp, Search, History, Sparkles } from 'lucide-react'
+import { BarChart3, Home, TrendingUp, Search, History, Sparkles, PlusCircle } from 'lucide-react'
 import Dashboard from './pages/Dashboard'
 import Statistics from './pages/Statistics'
 import Analysis from './pages/Analysis'
 import HistoryPage from './pages/HistoryPage'
 import Validate from './pages/Validate'
+import DataInput from './pages/DataInput'
 import ThemeToggle from './components/ThemeToggle'
 import './App.css'
 
@@ -14,6 +15,7 @@ const nav = [
   { to: '/analysis', icon: TrendingUp, label: '분석' },
   { to: '/history', icon: History, label: '히스토리' },
   { to: '/validate', icon: Search, label: '번호검증' },
+  { to: '/input', icon: PlusCircle, label: '데이터 입력' },
 ]
 
 export default function App() {
@@ -46,8 +48,19 @@ export default function App() {
           <Route path="/analysis" element={<Analysis />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/validate" element={<Validate />} />
+          <Route path="/input" element={<DataInput />} />
         </Routes>
       </main>
+
+      {/* 모바일 하단 네비 */}
+      <div className="bottom-nav">
+        {nav.slice(0, 5).map(({ to, icon: Icon, label }) => (
+          <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => isActive ? 'active' : ''}>
+            <Icon size={18} strokeWidth={1.8} />
+            <span>{label}</span>
+          </NavLink>
+        ))}
+      </div>
     </div>
   )
 }

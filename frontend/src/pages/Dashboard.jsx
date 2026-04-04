@@ -272,7 +272,7 @@ export default function Dashboard() {
       </div>
 
       {/* ═══ 2열 레이아웃 ═══ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
+      <div className="dashboard-grid">
 
         {/* ─── 좌측 ─── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
