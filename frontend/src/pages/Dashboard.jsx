@@ -4,6 +4,7 @@ import { RefreshCw, Sparkles, Flame, Snowflake, Scale, Gem, Brain, ChevronDown, 
 import { getLatestDraw, getDraws, getLatestPredictions, getNumberStats, getRangeStats, getCombinationStats, crawlAll, generateTypedPredictions } from '../api/client'
 import { BallGroup } from '../components/LottoBall'
 import Loading from '../components/Loading'
+import InfoTip from '../components/InfoTip'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, CartesianGrid, PieChart, Pie } from 'recharts'
 
 const TYPES = {
@@ -170,21 +171,21 @@ export default function Dashboard() {
           {/* ① 통계 요약 4칸 */}
           <div className="grid-4">
             <div className="mini-stat">
-              <div className="label">총 회차</div>
+              <div className="label">총 회차 <InfoTip text="동행복권에서 수집된 로또 6/45 전체 추첨 회차 수입니다. 2002년 1회차부터 현재까지의 누적 데이터입니다." /></div>
               <div className="value">{totalDraws.toLocaleString()}</div>
             </div>
             <div className="mini-stat">
-              <div className="label">평균 홀짝</div>
+              <div className="label">평균 홀짝 <InfoTip text="최근 30회차 당첨번호의 홀수:짝수 평균 비율입니다. 통계적으로 3:3이 가장 많이 나오며, 2:4 또는 4:2도 흔합니다." /></div>
               <div className="value" style={{ fontSize: 20 }}>{oddEvenAvg ? `${oddEvenAvg.odd}:${oddEvenAvg.even}` : '—'}</div>
               <div className="sub">최근 30회</div>
             </div>
             <div className="mini-stat">
-              <div className="label">평균 연번</div>
+              <div className="label">평균 연번 <InfoTip text="최근 30회차에서 연속된 번호 쌍(예: 7,8)이 평균 몇 쌍 나왔는지를 나타냅니다. 보통 0~1쌍이 가장 흔합니다." /></div>
               <div className="value" style={{ fontSize: 20 }}>{consecAvg}쌍</div>
               <div className="sub">최근 30회</div>
             </div>
             <div className="mini-stat">
-              <div className="label">평균 합계</div>
+              <div className="label">평균 합계 <InfoTip text="당첨번호 6개의 합계 평균입니다. 전체 이력 기준 100~175 범위가 약 80%를 차지합니다. 극단적인 합계(60이하, 200이상)는 드뭅니다." /></div>
               <div className="value" style={{ fontSize: 20 }}>{sumTrend.length ? Math.round(sumTrend.reduce((s, d) => s + d.s, 0) / sumTrend.length) : '—'}</div>
               <div className="sub">이상적 100~175</div>
             </div>
@@ -197,6 +198,7 @@ export default function Dashboard() {
                 <div className="card-title" style={{ marginBottom: 12 }}>
                   <BarChart3 size={13} style={{ marginRight: 4, verticalAlign: 'middle', color: 'var(--accent)' }} />
                   번호별 빈도
+                  <InfoTip text="1~45 각 번호가 전체 추첨에서 몇 번 당첨번호에 포함되었는지 보여줍니다. 빨간색은 최근 자주 나온 핫넘버, 파란색은 오래 안 나온 콜드넘버입니다." />
                 </div>
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={chartData} barCategoryGap="12%">
@@ -214,7 +216,9 @@ export default function Dashboard() {
               <div className="card">
                 <div className="card-title" style={{ marginBottom: 12 }}>
                   <TrendingUp size={13} style={{ marginRight: 4, verticalAlign: 'middle', color: 'var(--accent)' }} />
-                  합계 트렌드 <span style={{ fontSize: 10, color: 'var(--t4)', fontWeight: 400 }}>최근 20회</span>
+                  합계 트렌드
+                  <InfoTip text="최근 20회차 당첨번호 6개의 합계 변화입니다. 100~175 범위가 이상적이며, 급격한 상승/하락 패턴이 반복되는 경향이 있습니다." />
+                  <span style={{ fontSize: 10, color: 'var(--t4)', fontWeight: 400, marginLeft: 4 }}>최근 20회</span>
                 </div>
                 <ResponsiveContainer width="100%" height={180}>
                   <LineChart data={sumTrend}>
@@ -233,7 +237,7 @@ export default function Dashboard() {
           <div className="grid-3">
             {rangeAvg.length > 0 && (
               <div className="card">
-                <div className="card-title" style={{ marginBottom: 10 }}>구간 분포</div>
+                <div className="card-title" style={{ marginBottom: 10 }}>구간 분포 <InfoTip text="1~10, 11~20, 21~30, 31~40, 41~45 각 구간에서 평균 몇 개의 번호가 나왔는지를 보여줍니다. 고르게 분포할수록 균형 잡힌 조합입니다." /></div>
                 <ResponsiveContainer width="100%" height={160}>
                   <PieChart>
                     <Pie data={rangeAvg} cx="50%" cy="50%" innerRadius={38} outerRadius={62} dataKey="value" paddingAngle={3}
@@ -247,7 +251,7 @@ export default function Dashboard() {
             )}
             <div className="card">
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
-                <Flame size={13} color="var(--hot)" /> 핫 번호
+                <Flame size={13} color="var(--hot)" /> 핫 번호 <InfoTip text="최근 20회차에서 평균보다 1.5배 이상 자주 출현한 번호입니다. 트렌드를 따르는 공격적 전략에 활용됩니다." />
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {hot.map(s => (
@@ -261,7 +265,7 @@ export default function Dashboard() {
             </div>
             <div className="card">
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
-                <Snowflake size={13} color="var(--cold)" /> 콜드 번호
+                <Snowflake size={13} color="var(--cold)" /> 콜드 번호 <InfoTip text="최근 20회차에서 평균의 절반 이하로 출현한 번호입니다. 오래 안 나온 만큼 '평균 회귀'를 기대하는 역발상 전략에 활용됩니다." />
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {cold.map(s => (
@@ -282,6 +286,7 @@ export default function Dashboard() {
                 <div className="section-title" style={{ margin: 0 }}>
                   <Sparkles size={14} color="var(--accent)" />
                   <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--t0)' }}>{typed.target_round}회차 추천</span>
+                  <InfoTip text="5가지 서로 다른 AI 전략으로 생성된 추천 번호입니다. 핫넘버(최근 고빈도), 콜드넘버(장기 미출현), 균형 조합(홀짝/구간 최적), 희소 조합(남들이 안 고르는 번호), AI 앙상블(5개 엔진 종합). 카드를 클릭하면 각 번호의 상세 통계를 비교할 수 있습니다." />
                 </div>
                 <span style={{ fontSize: 10, color: 'var(--t4)' }}>카드 클릭 → 통계 비교</span>
               </div>
@@ -306,7 +311,7 @@ export default function Dashboard() {
           <div className="grid-2">
             <div className="card">
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-                <Percent size={13} color="var(--accent)" /> 2개 조합 TOP 10
+                <Percent size={13} color="var(--accent)" /> 2개 조합 TOP 10 <InfoTip text="역대 전체 추첨에서 두 번호가 동시에 당첨번호에 포함된 횟수와 확률입니다. 자주 같이 나오는 번호 쌍을 참고하여 조합을 구성할 수 있습니다." />
               </div>
               {topPairs?.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -323,7 +328,7 @@ export default function Dashboard() {
             </div>
             <div className="card">
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-                <Percent size={13} color="var(--gold)" /> 3개 조합 TOP 5
+                <Percent size={13} color="var(--gold)" /> 3개 조합 TOP 5 <InfoTip text="세 번호가 동시에 당첨번호에 포함된 횟수와 확률입니다. 2개 조합보다 희귀하며, 높은 빈도의 3개 조합은 강한 상관관계를 나타냅니다." />
               </div>
               {topTriples?.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -347,6 +352,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
               <Trophy size={14} color="var(--gold)" />
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--t0)' }}>최근 당첨번호</span>
+              <InfoTip text="동행복권에서 수집된 최근 10회차 당첨번호입니다. 최상단은 가장 최근 회차이며, 보너스 번호와 1등 당첨금도 함께 표시됩니다." />
             </div>
             {loadingDraw ? <Loading /> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
