@@ -138,11 +138,6 @@
 .section { margin-bottom: 20px; }
 .section-title { font-size: 12px; font-weight: 600; color: var(--t2); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
 
-/* ═══ Dashboard grid ═══ */
-.dashboard-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
-@media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr 280px; } }
-@media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
-
 /* ═══ Heatmap ═══ */
 .heatmap-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; }
 .heatmap-cell {
