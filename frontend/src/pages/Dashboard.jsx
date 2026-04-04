@@ -111,6 +111,7 @@ export default function Dashboard() {
   const { data: dbStatus } = useQuery({ queryKey: ['dbStatus'], queryFn: getDbStatus })
   const [freshTyped, setFreshTyped] = useState(null)
   const [openIdx, setOpenIdx] = useState(null)
+  const [showRecent, setShowRecent] = useState(false)
 
   // 크롤링
   const [crawlStart, setCrawlStart] = useState('')
@@ -271,13 +272,66 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* ═══ 2열 레이아웃 ═══ */}
-      <div className="dashboard-grid">
+      {/* ═══ 1열 레이아웃 ═══ */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        {/* ─── 좌측 ─── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* ① 최근 당첨번호 (아코디언) */}
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div onClick={() => setShowRecent(s => !s)}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 20px', cursor: 'pointer' }}>
+            <Trophy size={15} color="var(--gold)" />
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--t0)', flex: 1 }}>
+              최근 당첨번호
+              {latest && <span style={{ fontWeight: 400, color: 'var(--t3)', fontSize: 12, marginLeft: 8 }}>{latest.round_no}회</span>}
+            </span>
+            {latest && !showRecent && (
+              <div style={{ display: 'flex', gap: 4 }}>
+                {latest.numbers.map((n, i) => (
+                  <span key={i} className={`lotto-ball r${Math.ceil(n / 10)}`} style={{ width: 26, height: 26, fontSize: 10, boxShadow: 'none' }}>{n}</span>
+                ))}
+              </div>
+            )}
+            {showRecent ? <ChevronUp size={16} color="var(--t4)" /> : <ChevronDown size={16} color="var(--t4)" />}
+          </div>
+          {showRecent && (
+            <div style={{ padding: '0 20px 16px', borderTop: '1px solid var(--border-s)' }}>
+              {loadingDraw ? <Loading /> : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 14 }}>
+                  {latest && (
+                    <div style={{ padding: 14, background: 'var(--accent-soft)', borderRadius: 10, border: '1px solid var(--border-s)' }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
+                        <span style={{ fontSize: 20, fontWeight: 900, color: 'var(--t0)' }}>{latest.round_no}</span>
+                        <span style={{ fontSize: 11, color: 'var(--t3)' }}>회</span>
+                        <span style={{ fontSize: 10, color: 'var(--t4)', marginLeft: 'auto' }}>{latest.draw_date}</span>
+                      </div>
+                      <BallGroup numbers={latest.numbers} size={36} />
+                      <div style={{ marginTop: 6, fontSize: 10, color: 'var(--t4)' }}>
+                        보너스 <span className="lotto-ball" style={{ width: 22, height: 22, fontSize: 9, background: 'var(--bg-4)', boxShadow: 'none', display: 'inline-flex', verticalAlign: 'middle' }}>{latest.bonus}</span>
+                      </div>
+                      {latest.first_prize && (
+                        <div style={{ marginTop: 4, fontSize: 11, color: 'var(--t3)' }}>
+                          1등 <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{(latest.first_prize / 100000000).toFixed(0)}억</span>
+                          <span style={{ color: 'var(--t4)', marginLeft: 4 }}>{latest.first_winners}명</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {recent10.slice(1).map(d => (
+                    <div key={d.round_no} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', borderBottom: '1px solid var(--border-s)' }}>
+                      <div style={{ minWidth: 44 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>{d.round_no}</div>
+                        <div style={{ fontSize: 9, color: 'var(--t4)' }}>{d.draw_date?.slice(5)}</div>
+                      </div>
+                      <BallGroup numbers={d.numbers} size={24} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
-          {/* ① 통계 요약 4칸 */}
+          {/* ② 통계 요약 4칸 */}
           <div className="grid-4">
             <div className="mini-stat">
               <div className="label">총 회차 <InfoTip text="동행복권에서 수집된 로또 6/45 전체 추첨 회차 수입니다. 2002년 1회차부터 현재까지의 누적 데이터입니다." /></div>
@@ -454,54 +508,6 @@ export default function Dashboard() {
               ) : <p style={{ color: 'var(--t4)', fontSize: 12 }}>데이터 없음</p>}
             </div>
           </div>
-        </div>
-
-        {/* ─── 우측: 최근 당첨번호 ─── */}
-        <div style={{ position: 'sticky', top: 32 }}>
-          <div className="card" style={{ padding: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
-              <Trophy size={14} color="var(--gold)" />
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--t0)' }}>최근 당첨번호</span>
-              <InfoTip text="동행복권에서 수집된 최근 10회차 당첨번호입니다. 최상단은 가장 최근 회차이며, 보너스 번호와 1등 당첨금도 함께 표시됩니다." />
-            </div>
-            {loadingDraw ? <Loading /> : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {latest && (
-                  <div style={{ padding: 14, background: 'linear-gradient(135deg, rgba(124,92,252,0.06), rgba(91,141,239,0.04))', borderRadius: 12, border: '1px solid rgba(124,92,252,0.12)' }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
-                      <span style={{ fontSize: 22, fontWeight: 900, color: 'var(--t0)', letterSpacing: '-1px' }}>{latest.round_no}</span>
-                      <span style={{ fontSize: 11, color: 'var(--t3)' }}>회</span>
-                      <span style={{ fontSize: 10, color: 'var(--t4)', marginLeft: 'auto' }}>{latest.draw_date}</span>
-                    </div>
-                    <BallGroup numbers={latest.numbers} size={32} />
-                    <div style={{ marginTop: 6, fontSize: 10, color: 'var(--t4)' }}>
-                      보너스 <span className="lotto-ball" style={{ width: 20, height: 20, fontSize: 8, background: 'var(--bg-4)', boxShadow: 'none', display: 'inline-flex', verticalAlign: 'middle' }}>{latest.bonus}</span>
-                    </div>
-                    {latest.first_prize && (
-                      <div style={{ marginTop: 4, fontSize: 11, color: 'var(--t3)' }}>
-                        1등 <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{(latest.first_prize / 100000000).toFixed(0)}억</span>
-                        <span style={{ color: 'var(--t4)', marginLeft: 4 }}>{latest.first_winners}명</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-                {recent10.slice(1).map(d => (
-                  <div key={d.round_no} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--border-1)' }}>
-                    <div style={{ minWidth: 38 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)' }}>{d.round_no}</div>
-                      <div style={{ fontSize: 9, color: 'var(--t4)' }}>{d.draw_date?.slice(5)}</div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                      {d.numbers.map((n, i) => (
-                        <span key={i} className={`lotto-ball r${Math.ceil(n / 10)}`} style={{ width: 22, height: 22, fontSize: 9, boxShadow: 'none' }}>{n}</span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   )
