@@ -5,6 +5,7 @@ import Statistics from './pages/Statistics'
 import Analysis from './pages/Analysis'
 import HistoryPage from './pages/HistoryPage'
 import Validate from './pages/Validate'
+import ThemeToggle from './components/ThemeToggle'
 import './App.css'
 
 const nav = [
@@ -20,20 +21,23 @@ export default function App() {
     <div className="app-layout">
       <nav className="sidebar">
         <div className="sidebar-header">
-          <Sparkles size={22} className="logo-icon" />
+          <Sparkles size={20} className="logo-icon" />
           <span className="logo-text">Lotto AI</span>
         </div>
         <ul className="nav-list">
           {nav.map(({ to, icon: Icon, label }) => (
-            <li key={to} style={{ position: 'relative' }}>
+            <li key={to}>
               <NavLink to={to} end={to === '/'} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                <Icon size={18} strokeWidth={1.8} />
+                <Icon size={17} strokeWidth={1.8} />
                 <span>{label}</span>
               </NavLink>
             </li>
           ))}
         </ul>
-        <div className="sidebar-footer">v1.1</div>
+        <div className="sidebar-footer">
+          <span>v2.0</span>
+          <ThemeToggle />
+        </div>
       </nav>
       <main className="main-content">
         <Routes>

@@ -8,18 +8,34 @@ import InfoTip from '../components/InfoTip'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, CartesianGrid, PieChart, Pie } from 'recharts'
 
 const TYPES = {
-  hot:      { icon: Flame,    color: '#ff6b81', bg: 'rgba(255,107,129,0.1)',  label: '핫넘버' },
-  cold:     { icon: Snowflake, color: '#45b7d1', bg: 'rgba(69,183,209,0.1)',  label: '콜드넘버' },
-  balanced: { icon: Scale,    color: '#3dd68c', bg: 'rgba(61,214,140,0.1)',  label: '균형 조합' },
-  rare:     { icon: Gem,      color: '#ffb347', bg: 'rgba(255,179,71,0.1)',  label: '희소 조합' },
-  ensemble: { icon: Brain,    color: '#7c5cfc', bg: 'rgba(124,92,252,0.1)',  label: 'AI 앙상블' },
+  hot:      { icon: Flame,    label: '핫넘버' },
+  cold:     { icon: Snowflake, label: '콜드넘버' },
+  balanced: { icon: Scale,    label: '균형 조합' },
+  rare:     { icon: Gem,      label: '희소 조합' },
+  ensemble: { icon: Brain,    label: 'AI 앙상블' },
 }
-const TT = { background: '#19191f', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, fontSize: 12 }
-const PIE_COLORS = ['#e6a817', '#3b82f6', '#ef4444', '#8b5cf6', '#10b981']
+const TYPE_COLORS = { hot: 'var(--hot)', cold: 'var(--cold)', balanced: 'var(--green)', rare: 'var(--gold)', ensemble: 'var(--accent)' }
+const TYPE_SOFTS = { hot: 'var(--hot-soft)', cold: 'var(--cold-soft)', balanced: 'var(--green-soft)', rare: 'var(--gold-soft)', ensemble: 'var(--accent-soft)' }
+const PIE_COLORS = ['#ca8a04', '#2563eb', '#dc2626', '#7c3aed', '#059669']
 
-function RecCard({ p, stats, open, onToggle }) {
+function useChartStyles() {
+  const s = getComputedStyle(document.documentElement)
+  return {
+    tt: { background: s.getPropertyValue('--tooltip-bg').trim(), border: `1px solid ${s.getPropertyValue('--tooltip-border').trim()}`, borderRadius: 8, fontSize: 12 },
+    grid: s.getPropertyValue('--chart-grid').trim(),
+    bar: s.getPropertyValue('--chart-bar').trim(),
+    tick: s.getPropertyValue('--t3').trim(),
+    hot: s.getPropertyValue('--hot').trim(),
+    cold: s.getPropertyValue('--cold').trim(),
+    accent: s.getPropertyValue('--accent').trim(),
+  }
+}
+
+function RecCard({ p, stats, open, onToggle, cs }) {
   const c = TYPES[p.type] || TYPES.ensemble
   const Icon = c.icon
+  const color = TYPE_COLORS[p.type] || 'var(--accent)'
+  const soft = TYPE_SOFTS[p.type] || 'var(--accent-soft)'
   const numStats = useMemo(() => {
     if (!stats?.length || !p.numbers?.length) return null
     const map = Object.fromEntries(stats.map(s => [s.number, s]))
@@ -32,10 +48,10 @@ function RecCard({ p, stats, open, onToggle }) {
   const coldCount = numStats ? numStats.filter(n => n.is_cold).length : 0
 
   return (
-    <div className="type-card" style={{ borderColor: open ? `${c.color}40` : undefined }} onClick={onToggle}>
+    <div className="type-card" style={{ borderColor: open ? color : undefined }} onClick={onToggle}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <div className="type-icon" style={{ background: c.bg }}><Icon size={16} color={c.color} /></div>
-        <span style={{ fontSize: 13, fontWeight: 700, color: c.color, flex: 1 }}>{c.label}</span>
+        <div className="type-icon" style={{ background: soft }}><Icon size={16} style={{ color }} /></div>
+        <span style={{ fontSize: 13, fontWeight: 700, color, flex: 1 }}>{c.label}</span>
         {p.confidence && <span className="type-chip" style={{ background: 'rgba(61,214,140,0.1)', color: 'var(--green)' }}>{p.confidence}%</span>}
         {open ? <ChevronUp size={13} color="var(--t4)" /> : <ChevronDown size={13} color="var(--t4)" />}
       </div>
@@ -70,9 +86,9 @@ function RecCard({ p, stats, open, onToggle }) {
           <div style={{ marginTop: 10 }}>
             <ResponsiveContainer width="100%" height={100}>
               <BarChart data={numStats.map(s => ({ n: s.number, f: s.frequency }))}>
-                <XAxis dataKey="n" tick={{ fill: '#6e6e80', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={TT} />
-                <Bar dataKey="f" name="출현" fill={c.color} radius={[4, 4, 0, 0]} />
+                <XAxis dataKey="n" tick={{ fill: 'var(--t3)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={cs?.tt} />
+                <Bar dataKey="f" name="출현" fill={cs?.accent || '#6366f1'} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -83,6 +99,7 @@ function RecCard({ p, stats, open, onToggle }) {
 }
 
 export default function Dashboard() {
+  const cs = useChartStyles()
   const qc = useQueryClient()
   const { data: latest, isLoading: loadingDraw } = useQuery({ queryKey: ['latestDraw'], queryFn: getLatestDraw })
   const { data: drawList } = useQuery({ queryKey: ['draws', 1], queryFn: () => getDraws(1, 10) })
@@ -294,11 +311,11 @@ export default function Dashboard() {
                 </div>
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={chartData} barCategoryGap="12%">
-                    <XAxis dataKey="n" tick={{ fill: '#444454', fontSize: 8 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#444454', fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={TT} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
+                    <XAxis dataKey="n" tick={{ fill: cs.tick, fontSize: 8 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: cs.tick, fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={cs.tt} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
                     <Bar dataKey="f" name="횟수" radius={[3, 3, 0, 0]}>
-                      {chartData.map((e, i) => <Cell key={i} fill={e.h ? '#ff6b81' : e.c ? '#45b7d1' : '#222229'} />)}
+                      {chartData.map((e, i) => <Cell key={i} fill={e.h ? cs.hot : e.c ? cs.cold : cs.bar} />)}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -315,9 +332,9 @@ export default function Dashboard() {
                 <ResponsiveContainer width="100%" height={180}>
                   <LineChart data={sumTrend}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
-                    <XAxis dataKey="r" tick={{ fill: '#444454', fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <YAxis domain={[60, 210]} tick={{ fill: '#444454', fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={TT} />
+                    <XAxis dataKey="r" tick={{ fill: cs.tick, fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[60, 210]} tick={{ fill: cs.tick, fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={cs.tt} />
                     <Line type="monotone" dataKey="s" name="합계" stroke="var(--accent)" strokeWidth={2} dot={{ r: 2, fill: 'var(--accent)' }} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -336,7 +353,7 @@ export default function Dashboard() {
                       label={({ name }) => name} labelLine={false}>
                       {rangeAvg.map((_, i) => <Cell key={i} fill={PIE_COLORS[i]} />)}
                     </Pie>
-                    <Tooltip contentStyle={TT} />
+                    <Tooltip contentStyle={cs.tt} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>

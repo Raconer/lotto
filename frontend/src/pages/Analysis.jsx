@@ -9,7 +9,11 @@ import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from 'recharts'
 
-const TOOLTIP_STYLE = { background: '#18181b', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12 }
+function tt() {
+  const s = getComputedStyle(document.documentElement)
+  return { background: s.getPropertyValue('--tooltip-bg').trim(), border: `1px solid ${s.getPropertyValue('--tooltip-border').trim()}`, borderRadius: 8, fontSize: 12 }
+}
+function tv(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim() }
 const TYPE_META = {
   hot: { icon: Flame, color: '#f43f5e' }, cold: { icon: Snowflake, color: '#06b6d4' },
   balanced: { icon: Scale, color: '#10b981' }, rare: { icon: Gem, color: '#f59e0b' },
@@ -182,9 +186,9 @@ export default function Analysis() {
                   <div className="card-title" style={{ marginBottom: 16 }}>레이더</div>
                   <ResponsiveContainer width="100%" height={280}>
                     <RadarChart data={radar}>
-                      <PolarGrid stroke="rgba(255,255,255,0.06)" />
-                      <PolarAngleAxis dataKey="algo" tick={{ fill: '#71717a', fontSize: 10 }} />
-                      <PolarRadiusAxis tick={{ fill: '#52525b', fontSize: 9 }} />
+                      <PolarGrid stroke="var(--chart-grid)" />
+                      <PolarAngleAxis dataKey="algo" tick={{ fill: 'var(--t3)', fontSize: 10 }} />
+                      <PolarRadiusAxis tick={{ fill: 'var(--t3)', fontSize: 9 }} />
                       <Radar name="평균" dataKey="avg" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.2} />
                       <Radar name="최대" dataKey="max" stroke="#f43f5e" fill="#f43f5e" fillOpacity={0.1} />
                       <Legend wrapperStyle={{ fontSize: 11 }} />
@@ -195,9 +199,9 @@ export default function Analysis() {
                   <div className="card-title" style={{ marginBottom: 16 }}>적중 분포</div>
                   <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={dist}>
-                      <XAxis dataKey="algo" tick={{ fill: '#52525b', fontSize: 9 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: '#52525b', fontSize: 10 }} axisLine={false} tickLine={false} />
-                      <Tooltip contentStyle={TOOLTIP_STYLE} />
+                      <XAxis dataKey="algo" tick={{ fill: 'var(--t3)', fontSize: 9 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: 'var(--t3)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={tt()} />
                       <Legend wrapperStyle={{ fontSize: 10 }} />
                       <Bar dataKey="0개" fill="#27272a" />
                       <Bar dataKey="1개" fill="#6366f1" />
