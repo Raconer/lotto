@@ -1,5 +1,9 @@
-from fastapi import APIRouter, Depends, BackgroundTasks, Query
+import csv
+import io
+from datetime import datetime
+from fastapi import APIRouter, Depends, BackgroundTasks, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.core.database import get_db, async_session
 from app.schemas.draw import CrawlResponse
@@ -95,3 +99,82 @@ async def update_stats(db: AsyncSession = Depends(get_db)):
     await update_combination_stats(db, max_combo_size=3)
     await update_range_stats(db)
     return {"message": "통계 갱신 완료"}
+
+
+@router.post(
+    "/manual",
+    summary="수동 회차 입력",
+    description="회차 번호, 추첨일, 당첨번호 6개, 보너스를 직접 입력합니다.",
+)
+async def manual_input(
+    round_no: int = Query(..., ge=1),
+    draw_date: str = Query(..., description="YYYY-MM-DD"),
+    num1: int = Query(..., ge=1, le=45),
+    num2: int = Query(..., ge=1, le=45),
+    num3: int = Query(..., ge=1, le=45),
+    num4: int = Query(..., ge=1, le=45),
+    num5: int = Query(..., ge=1, le=45),
+    num6: int = Query(..., ge=1, le=45),
+    bonus: int = Query(..., ge=1, le=45),
+    background_tasks: BackgroundTasks = None,
+    db: AsyncSession = Depends(get_db),
+):
+    from app.models.draw import Draw
+    nums = sorted([num1, num2, num3, num4, num5, num6])
+    if len(set(nums + [bonus])) != 7:
+        return {"error": "번호가 중복됩니다."}
+
+    stmt = pg_insert(Draw).values(
+        round_no=round_no, draw_date=datetime.strptime(draw_date, "%Y-%m-%d").date(),
+        num1=nums[0], num2=nums[1], num3=nums[2], num4=nums[3], num5=nums[4], num6=nums[5],
+        bonus=bonus,
+    ).on_conflict_do_update(
+        index_elements=["round_no"],
+        set_={"num1": nums[0], "num2": nums[1], "num3": nums[2], "num4": nums[3], "num5": nums[4], "num6": nums[5], "bonus": bonus},
+    )
+    await db.execute(stmt)
+    await db.commit()
+    if background_tasks:
+        background_tasks.add_task(_update_all_stats_background)
+    return {"message": f"{round_no}회차 저장 완료", "numbers": nums, "bonus": bonus}
+
+
+@router.post(
+    "/upload-csv",
+    summary="CSV 파일 업로드",
+    description="CSV 파일로 여러 회차를 한 번에 업로드합니다. 형식: round_no,draw_date,num1,num2,num3,num4,num5,num6,bonus",
+)
+async def upload_csv(
+    file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = None,
+    db: AsyncSession = Depends(get_db),
+):
+    from app.models.draw import Draw
+    content = (await file.read()).decode("utf-8-sig")
+    reader = csv.DictReader(io.StringIO(content))
+
+    inserted = 0
+    errors = []
+    for i, row in enumerate(reader):
+        try:
+            rn = int(row.get("round_no") or row.get("회차"))
+            dd = row.get("draw_date") or row.get("추첨일") or ""
+            nums = sorted([int(row.get(f"num{j}") or row.get(f"번호{j}")) for j in range(1, 7)])
+            bn = int(row.get("bonus") or row.get("보너스"))
+
+            draw_date = datetime.strptime(dd.strip(), "%Y-%m-%d").date() if dd.strip() else None
+            stmt = pg_insert(Draw).values(
+                round_no=rn, draw_date=draw_date,
+                num1=nums[0], num2=nums[1], num3=nums[2], num4=nums[3], num5=nums[4], num6=nums[5],
+                bonus=bn,
+            ).on_conflict_do_nothing(index_elements=["round_no"])
+            result = await db.execute(stmt)
+            if result.rowcount > 0:
+                inserted += 1
+        except Exception as e:
+            errors.append(f"행 {i+1}: {str(e)}")
+
+    await db.commit()
+    if inserted > 0 and background_tasks:
+        background_tasks.add_task(_update_all_stats_background)
+    return {"message": f"업로드 완료: {inserted}개 신규 저장", "inserted": inserted, "errors": errors[:10]}
