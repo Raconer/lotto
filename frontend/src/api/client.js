@@ -33,6 +33,15 @@ export const getCrawlStatus = () =>
 export const getDbStatus = () =>
   client.get('/crawl/db-status').then(r => r.data);
 
+export const manualInput = (params) =>
+  client.post('/crawl/manual', null, { params }).then(r => r.data);
+
+export const uploadCsv = (file) => {
+  const form = new FormData();
+  form.append('file', file);
+  return client.post('/crawl/upload-csv', form).then(r => r.data);
+};
+
 // 통계
 export const getNumberStats = () =>
   client.get('/stats/numbers').then(r => r.data);
