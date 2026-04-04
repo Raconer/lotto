@@ -21,8 +21,17 @@ export const getDrawByRound = (roundNo) =>
 export const crawlAll = () =>
   client.post('/crawl/all').then(r => r.data);
 
+export const crawlRange = (start, end) =>
+  client.post('/crawl/range', null, { params: { start, end } }).then(r => r.data);
+
 export const crawlLatest = () =>
   client.post('/crawl/latest').then(r => r.data);
+
+export const getCrawlStatus = () =>
+  client.get('/crawl/status').then(r => r.data);
+
+export const getDbStatus = () =>
+  client.get('/crawl/db-status').then(r => r.data);
 
 // 통계
 export const getNumberStats = () =>
